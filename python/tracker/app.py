@@ -43,16 +43,17 @@ class TrackerApp(App):
 
     def __enter__(self) -> None:
         self._ui_context.__enter__()
-        self._data_saver.__enter__()
+        # self._data_saver.__enter__()
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         # TODO I don't think this is quite right
         self._ui_context.__exit__(exc_type, exc_val, exc_tb)
-        self._data_saver.__exit__(exc_type, exc_val, exc_tb)
+        # self._data_saver.__exit__(exc_type, exc_val, exc_tb)
 
     def build(self) -> Widget:
-        font_size = 30
+        font_size = self._ui_context.font_size()
         self._layout = BoxLayout(orientation='vertical')
+        self._layout.add_widget(BoxLayout(orientation='horizontal', size_hint=(1.0, 0.2)))  # offset
         self._row_layouts = [BoxLayout(orientation='horizontal') for _ in range(self._num_buttons)]
         self._counts = [Label(font_size=font_size, text=str(i)) for i in range(self._num_buttons)]
         self._lasts = [Label(font_size=font_size, text=str(i)) for i in range(self._num_buttons)]
@@ -76,7 +77,8 @@ class TrackerApp(App):
                 else:
                     button_ind = button
                 label = self._pages[self._page_ind][button_ind]
-                self._data_saver.insert_event(label)
+                with self._data_saver:
+                    self._data_saver.insert_event(label)
         else:
             self._page_ind = 0  # always reset the page
         self._ui_context.turn_on_screen()
@@ -84,8 +86,9 @@ class TrackerApp(App):
 
     def _setup_page(self) -> None:
         button_ind = 0
-        event_to_last = self._data_saver.get_last_occurrences(self._pages[self._page_ind])
-        event_to_count = self._data_saver.get_num_in_last_24_hours(self._pages[self._page_ind])
+        with self._data_saver:
+            event_to_last = self._data_saver.get_last_occurrences(self._pages[self._page_ind])
+            event_to_count = self._data_saver.get_num_in_last_24_hours(self._pages[self._page_ind])
         for i in range(len(self._buttons)):
             if i == self._next_page_button:
                 self._counts[i].text = f'Page {self._page_ind + 1} / {len(self._pages)}'

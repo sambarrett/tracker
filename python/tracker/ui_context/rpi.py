@@ -19,12 +19,14 @@ class RPi(UIContext):
     def __init__(self, backlight_code: int = 18):
         super().__init__()
         Window.fullscreen = True
+        Window.size = (640, 480)
+
         self._backlight_code = backlight_code
         # initialize the GPIO buttons
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._backlight_code, GPIO.OUT)  # set up the channel
         # set up the trigger
-        self._backlight_off_trigger = Clock.create_trigger(self.turn_on_screen, timeout=10.0)
+        self._backlight_off_trigger = Clock.create_trigger(self.turn_off_screen, timeout=20.0)
         self._backlight_off_trigger()
 
     def is_screen_on(self) -> bool:
@@ -36,7 +38,7 @@ class RPi(UIContext):
         self._backlight_off_trigger.cancel()  # abort the previous one
         self._backlight_off_trigger()
 
-    def turn_off_screen(self):
+    def turn_off_screen(self, *args: Any) -> None:
         GPIO.output(self._backlight_code, 0)
         self._screen_on = False
 
@@ -45,5 +47,12 @@ class RPi(UIContext):
         assert num == len(button_codes)
         for i, button_code in enumerate(button_codes):
             GPIO.setup(button_code, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(button_code, GPIO.UP, callback=lambda i=i: handler(i), bouncetime=50)
+
+            def f(button: int, i: int = i) -> None:
+                handler(i)
+
+            GPIO.add_event_detect(button_code, GPIO.RISING, callback=f, bouncetime=200)
         return [Label(text=str(i), font_size=font_size) for i in range(num)]
+
+    def font_size(self) -> int:
+        return 25

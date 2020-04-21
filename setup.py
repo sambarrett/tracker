@@ -10,8 +10,8 @@ setup(
     author_email='thesambarrett@gmail.com',
     packages=['tracker'],
     package_dir={'': 'python'},
-    requires=[
-        'kivy >= 1.11.1',
-        'python-dateutil >= 2.8.1'
+    install_requires=[
+        'kivy>=1.11.1',
+        'python-dateutil>=2.8.1'
     ]
 )

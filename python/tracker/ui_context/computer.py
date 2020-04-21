@@ -29,3 +29,6 @@ class Computer(UIContext):
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.turn_on_screen()
+
+    def font_size(self) -> int:
+        return 30
