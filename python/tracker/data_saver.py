@@ -5,6 +5,7 @@ import sqlite3
 from typing import Sequence, Dict, Optional, Any, Mapping
 
 import dateutil.parser as datetime_parser
+import pytz
 
 __all__ = ['DataSaver', 'SqliteDataSaver']
 
@@ -38,12 +39,14 @@ class SqliteDataSaver(DataSaver):
     _event_name_to_id: Dict[str, int]
     _event_id_to_name: Dict[int, str]
     _event_names: Sequence[str]
+    _timezone: pytz.tzinfo.DstTzInfo
 
     def __init__(self, db_path: Path, event_names: Sequence[str]):
         self._db_path = db_path
         self._event_name_to_id = {}
         self._event_id_to_name = {}
         self._event_names = event_names
+        self._timezone = pytz.timezone('US/Eastern')
 
     def __enter__(self) -> None:
         self._db_conn = sqlite3.connect(str(self._db_path))
@@ -101,7 +104,7 @@ class SqliteDataSaver(DataSaver):
         for eid, dt in rows:
             if eid in event_ids:
                 event_name = self._event_id_to_name[eid]
-                res[event_name] = datetime_parser.isoparse(dt)
+                res[event_name] = pytz.utc.localize(datetime_parser.isoparse(dt)).astimezone(self._timezone)
         for event_name in event_names:
             if event_name not in res:
                 res[event_name] = None

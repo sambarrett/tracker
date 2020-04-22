@@ -12,6 +12,7 @@ setup(
     package_dir={'': 'python'},
     install_requires=[
         'kivy>=1.11.1',
-        'python-dateutil>=2.8.1'
+        'python-dateutil>=2.8.1',
+        'pytz>=2019.3',
     ]
 )
